@@ -1,0 +1,43 @@
+#!/bin/bash
+
+BAR="#"
+MIN=1
+MAX=100
+
+progress_bar() {
+    TIMES=$1
+    COUNT=$2
+    PROGRESS=$(echo | awk -v t=$TIMES -v c=$COUNT -v max=$MAX '{ print int(c / t * max) }')
+    
+    PROGRESS_BAR=""
+    for _i in $(seq $MIN $PROGRESS); do PROGRESS_BAR="${PROGRESS_BAR}${BAR}"; done
+    
+    printf "\r[%-100s] %3d%%" $PROGRESS_BAR $PROGRESS
+}
+
+byte() {
+    echo $1 | awk '{
+        if ($1 < 1024) {
+            printf("%.2f", $1);
+        } else if ($1 < 1048576) {
+            printf("%.2fKB", $1 / 1024);
+        } else if ($1 < 1073741824) {
+            printf("%.2fMB", $1 / 1024 / 1024);
+        } else if ($1 >= 1073741824) {
+            printf("%.2fGB", $1 / 1024 / 1024 / 1024);
+        }
+}'
+}
+
+progress_bar_bytes() {
+    TOTAL=$1
+    CURRENT=$2
+    PROGRESS=$(echo | awk -v t=$TOTAL -v c=$CURRENT -v max=$MAX '{ print int(c / t * max) }')
+    _TOTAL=$(byte $TOTAL)
+    _CURRENT=$(byte $CURRENT)
+
+    PROGRESS_BAR=""
+    for _i in $(seq $MIN $PROGRESS); do PROGRESS_BAR="${PROGRESS_BAR}${BAR}"; done
+
+    printf "\r[%-100s] %s / %s %3d%%  " $PROGRESS_BAR $_CURRENT $_TOTAL $PROGRESS
+}
